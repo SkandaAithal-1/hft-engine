@@ -13,21 +13,21 @@ class OrderBook
 public:
     OrderBook();
 
-    AddResult add_order(OrderID id, Side side, Price price, Quantity quantity, Quantity remaining);
+    AddResult add_order(const OrderID id, const Side side, const Price price, const Quantity quantity, const Quantity remaining);
 
-    CancelResult cancel_order(OrderID id);
+    CancelResult cancel_order(const OrderID id);
 
     std::optional<Order> best_bid() const;
 
     std::optional<Order> best_ask() const;
 
-    Quantity quantity_at(Side side, Price price) const;
+    Quantity quantity_at(const Side side, const Price price) const;
 
-    std::size_t order_count_at(Side side, Price price) const;
+    std::size_t order_count_at(const Side side, const Price price) const;
 
-    const Order *get_order(OrderID id) const;
+    const Order *get_order(const OrderID id) const;
 
-    ReduceResult reduce_order(OrderID id, Quantity quantity);
+    ReduceResult reduce_order(const OrderID id, const Quantity quantity);
 
 private:
     std::uint64_t sequence_counter;

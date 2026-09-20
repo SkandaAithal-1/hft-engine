@@ -9,9 +9,9 @@ class MatchingEngine
 public:
     explicit MatchingEngine(OrderBook &book, TradeSink &trade_sink) : _book(book), _trade_sink(trade_sink) {}
 
-    MatchingResult process_order(OrderID id, Side side, Price price, Quantity quantity);
+    MatchingResult process_order(const OrderID id, const Side side, const Price price, const Quantity quantity);
 
-    CancelResult cancel_order(OrderID id);
+    CancelResult cancel_order(const OrderID id);
 
 private:
     OrderBook &_book;

@@ -3,7 +3,7 @@
 
 OrderBook::OrderBook() {}
 
-AddResult OrderBook::add_order(OrderID id, Side side, Price price, Quantity quantity, Quantity remaining)
+AddResult OrderBook::add_order(const OrderID id, const Side side, const Price price, const Quantity quantity, const Quantity remaining)
 {
     if (quantity == 0)
         return AddResult::INVALID_QUANTITY;
@@ -28,7 +28,7 @@ AddResult OrderBook::add_order(OrderID id, Side side, Price price, Quantity quan
     return AddResult::SUCCESS;
 }
 
-CancelResult OrderBook::cancel_order(OrderID id)
+CancelResult OrderBook::cancel_order(const OrderID id)
 {
     auto it = _order_index.find(id);
     if (it == _order_index.end())
@@ -68,7 +68,7 @@ std::optional<Order> OrderBook::best_ask() const
     return _asks.begin()->second.orders.front();
 }
 
-Quantity OrderBook::quantity_at(Side side, Price price) const
+Quantity OrderBook::quantity_at(const Side side, const Price price) const
 {
     auto &book_side = (side == Side::Buy)
                           ? _bids
@@ -81,7 +81,7 @@ Quantity OrderBook::quantity_at(Side side, Price price) const
     return 0;
 }
 
-std::size_t OrderBook::order_count_at(Side side, Price price) const
+std::size_t OrderBook::order_count_at(const Side side, const Price price) const
 {
     auto &book_side = (side == Side::Buy)
                           ? _bids
@@ -94,7 +94,7 @@ std::size_t OrderBook::order_count_at(Side side, Price price) const
     return static_cast<std::size_t>(0);
 }
 
-const Order *OrderBook::get_order(OrderID id) const
+const Order *OrderBook::get_order(const OrderID id) const
 {
     auto it = _order_index.find(id);
     if (it == _order_index.end())
@@ -103,7 +103,7 @@ const Order *OrderBook::get_order(OrderID id) const
     return &(*(it->second.iterator));
 }
 
-ReduceResult OrderBook::reduce_order(OrderID id, Quantity quantity)
+ReduceResult OrderBook::reduce_order(const OrderID id, const Quantity quantity)
 {
     auto it = _order_index.find(id);
     if (it == _order_index.end())

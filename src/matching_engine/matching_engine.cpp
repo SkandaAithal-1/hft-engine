@@ -1,6 +1,6 @@
 #include <hft/matching_engine/matching_engine.hpp>
 
-MatchingResult MatchingEngine::process_order(OrderID id, Side side, Price price, Quantity quantity)
+MatchingResult MatchingEngine::process_order(const OrderID id, const Side side, const Price price, const Quantity quantity)
 {
     if (price == 0)
         return MatchingResult::INVALID_PRICE;
@@ -43,7 +43,7 @@ MatchingResult MatchingEngine::process_order(OrderID id, Side side, Price price,
     return RETURN_STATUS;
 }
 
-CancelResult MatchingEngine::cancel_order(OrderID id)
+CancelResult MatchingEngine::cancel_order(const OrderID id)
 {
     return _book.cancel_order(id);
 }
