@@ -20,6 +20,9 @@ add_library(hft_order_book
 add_library(hft_matching_engine
     src/matching_engine/matching_engine.cpp
 )
+add_library(hft_event_processor
+    src/event/event_processor.cpp
+)
 
 target_include_directories(hft_order_book
     PUBLIC
@@ -29,9 +32,18 @@ target_include_directories(hft_matching_engine
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
+target_include_directories(hft_event_processor
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+)
+
 target_link_libraries(hft_matching_engine
     PUBLIC 
         hft_order_book
+)
+target_link_libraries(hft_event_processor
+    PUBLIC 
+        hft_matching_engine
 )
 
 # ------------------------------------------------------------
@@ -49,6 +61,9 @@ add_executable(order_book_tests
 add_executable(matching_engine_tests
     tests/matching_engine/matching_engine_tests.cpp
 )
+add_executable(event_processor_tests
+    tests/event/event_processor_tests.cpp
+)
 
 target_link_libraries(order_book_tests
     PRIVATE
@@ -60,8 +75,15 @@ target_link_libraries(matching_engine_tests
         hft_matching_engine
         Catch2::Catch2WithMain
 )
+target_link_libraries(event_processor_tests
+    PRIVATE 
+        hft_event_processor 
+        Catch2::Catch2WithMain
+)
+
 
 include(Catch)
 
 catch_discover_tests(order_book_tests)
 catch_discover_tests(matching_engine_tests)
+catch_discover_tests(event_processor_tests)

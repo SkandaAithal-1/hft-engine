@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <variant>
 
 using OrderID = std::uint64_t;
 using Price = std::uint64_t;
@@ -42,3 +43,5 @@ enum class ReduceResult
     NOT_FOUND,
     INVALID_QUANTITY
 };
+
+using ProcessResult = std::variant<MatchingResult, CancelResult>;
