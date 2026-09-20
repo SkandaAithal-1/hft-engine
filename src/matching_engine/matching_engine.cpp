@@ -42,3 +42,8 @@ MatchingResult MatchingEngine::process_order(OrderID id, Side side, Price price,
 
     return RETURN_STATUS;
 }
+
+CancelResult MatchingEngine::cancel_order(OrderID id)
+{
+    return _book.cancel_order(id);
+}

@@ -11,6 +11,8 @@ public:
 
     MatchingResult process_order(OrderID id, Side side, Price price, Quantity quantity);
 
+    CancelResult cancel_order(OrderID id);
+
 private:
     OrderBook &_book;
     TradeSink &_trade_sink;
