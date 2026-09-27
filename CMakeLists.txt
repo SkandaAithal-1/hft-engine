@@ -23,6 +23,15 @@ add_library(hft_matching_engine
 add_library(hft_event_processor
     src/event/event_processor.cpp
 )
+add_library(hft_order_gateway
+    src/order_gateway/order_gateway.cpp
+)
+add_library(hft_strategy
+    src/strategy/strategy.cpp
+)
+add_library(hft_simulation
+    src/simulation/simulation.cpp
+)
 
 target_include_directories(hft_order_book
     PUBLIC
@@ -36,6 +45,18 @@ target_include_directories(hft_event_processor
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
+target_include_directories(hft_order_gateway
+    PUBLIC 
+        ${PROJECT_SOURCE_DIR}/include
+)
+target_include_directories(hft_strategy
+    PUBLIC 
+        ${PROJECT_SOURCE_DIR}/include
+)
+target_include_directories(hft_simulation
+    PUBLIC 
+        ${PROJECT_SOURCE_DIR}/include
+)
 
 target_link_libraries(hft_matching_engine
     PUBLIC 
@@ -44,6 +65,13 @@ target_link_libraries(hft_matching_engine
 target_link_libraries(hft_event_processor
     PUBLIC 
         hft_matching_engine
+)
+target_link_libraries(hft_simulation
+    PUBLIC 
+        hft_order_book
+        hft_matching_engine
+        hft_event_processor
+        hft_order_gateway
 )
 
 # ------------------------------------------------------------
@@ -64,6 +92,9 @@ add_executable(matching_engine_tests
 add_executable(event_processor_tests
     tests/event/event_processor_tests.cpp
 )
+add_executable(simulation_tests
+    tests/simulation/simulation_tests.cpp
+)
 
 target_link_libraries(order_book_tests
     PRIVATE
@@ -80,6 +111,12 @@ target_link_libraries(event_processor_tests
         hft_event_processor 
         Catch2::Catch2WithMain
 )
+target_link_libraries(simulation_tests
+    PRIVATE 
+        hft_simulation
+        hft_strategy
+        Catch2::Catch2WithMain
+)
 
 
 include(Catch)
@@ -87,3 +124,4 @@ include(Catch)
 catch_discover_tests(order_book_tests)
 catch_discover_tests(matching_engine_tests)
 catch_discover_tests(event_processor_tests)
+catch_discover_tests(simulation_tests)
