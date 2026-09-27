@@ -32,6 +32,9 @@ add_library(hft_strategy
 add_library(hft_simulation
     src/simulation/simulation.cpp
 )
+add_library(hft_synthetic_market
+    src/synthetic_market/synthetic_market.cpp
+)
 
 target_include_directories(hft_order_book
     PUBLIC
@@ -54,6 +57,10 @@ target_include_directories(hft_strategy
         ${PROJECT_SOURCE_DIR}/include
 )
 target_include_directories(hft_simulation
+    PUBLIC 
+        ${PROJECT_SOURCE_DIR}/include
+)
+target_include_directories(hft_synthetic_market
     PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
 )
@@ -95,6 +102,9 @@ add_executable(event_processor_tests
 add_executable(simulation_tests
     tests/simulation/simulation_tests.cpp
 )
+add_executable(synthetic_market_tests
+    tests/synthetic_market/synthetic_market_tests.cpp
+)
 
 target_link_libraries(order_book_tests
     PRIVATE
@@ -117,6 +127,11 @@ target_link_libraries(simulation_tests
         hft_strategy
         Catch2::Catch2WithMain
 )
+target_link_libraries(synthetic_market_tests
+    PRIVATE 
+        hft_synthetic_market
+        Catch2::Catch2WithMain
+)
 
 
 include(Catch)
@@ -125,3 +140,4 @@ catch_discover_tests(order_book_tests)
 catch_discover_tests(matching_engine_tests)
 catch_discover_tests(event_processor_tests)
 catch_discover_tests(simulation_tests)
+catch_discover_tests(synthetic_market_tests)
