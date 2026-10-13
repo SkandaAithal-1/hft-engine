@@ -105,6 +105,9 @@ add_executable(simulation_tests
 add_executable(synthetic_market_tests
     tests/synthetic_market/synthetic_market_tests.cpp
 )
+add_executable(simulation_synthetic_market_tests
+    tests/synthetic_market/simulation_synthetic_market_tests.cpp
+)
 
 target_link_libraries(order_book_tests
     PRIVATE
@@ -132,6 +135,13 @@ target_link_libraries(synthetic_market_tests
         hft_synthetic_market
         Catch2::Catch2WithMain
 )
+target_link_libraries(simulation_synthetic_market_tests
+    PRIVATE 
+        hft_synthetic_market
+        hft_simulation
+        hft_strategy
+        Catch2::Catch2WithMain
+)
 
 
 include(Catch)
@@ -141,3 +151,4 @@ catch_discover_tests(matching_engine_tests)
 catch_discover_tests(event_processor_tests)
 catch_discover_tests(simulation_tests)
 catch_discover_tests(synthetic_market_tests)
+catch_discover_tests(simulation_synthetic_market_tests)

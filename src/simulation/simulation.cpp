@@ -133,11 +133,13 @@ void Simulation::process_order_queue()
 
     SubmitOrderRequest submit;
     CancelOrderRequest cancel;
+    MatchingResult matching_result;
+    CancelResult cancel_result;
     switch (order_request.index())
     {
     case 0:
         submit = std::get<SubmitOrderRequest>(order_request);
-        const MatchingResult matching_result = _matching_engine.process_order(submit.id, submit.side, submit.price, submit.quantity);
+        matching_result = _matching_engine.process_order(submit.id, submit.side, submit.price, submit.quantity);
 
         if (matching_result == MatchingResult::RESTING ||
             matching_result == MatchingResult::PARTIALLY_FILLED ||
@@ -148,7 +150,7 @@ void Simulation::process_order_queue()
         break;
     case 1:
         cancel = std::get<CancelOrderRequest>(order_request);
-        const CancelResult cancel_result = _matching_engine.cancel_order(cancel.id);
+        cancel_result = _matching_engine.cancel_order(cancel.id);
         if (cancel_result == CancelResult::SUCCESS)
         {
             _strategy_orders.erase(cancel.id);
