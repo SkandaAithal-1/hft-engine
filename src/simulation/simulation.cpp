@@ -22,7 +22,31 @@ void Simulation::run()
     Event event{};
     while (_event_source.next(event))
     {
-        _event_processor.process(event);
+        const ProcessResult process_result = _event_processor.process(event);
+
+        if (process_result.index() == 0)
+        {
+            const MatchingResult matching_result = std::get<0>(process_result);
+
+            if (matching_result == MatchingResult::RESTING ||
+                matching_result == MatchingResult::PARTIALLY_FILLED)
+            {
+                const auto order = std::get<0>(event.payload);
+                _source_orders[order.id] = order.quantity;
+                _event_source.on_order_update(order.id, OrderStatus::RESTING);
+            }
+        }
+        else
+        {
+            const CancelResult cancel_result = std::get<1>(process_result);
+
+            const OrderID id = std::get<1>(event.payload).id;
+            if (cancel_result == CancelResult::SUCCESS)
+                _source_orders.erase(id);
+
+            // Unconditional because the order should no longer exist in source records
+            _event_source.on_order_update(id, OrderStatus::REMOVED);
+        }
 
         // This will decide which is a trade event and execution report and also check with book update and publish
         // and also change processed_event_count accordingly
@@ -51,12 +75,31 @@ void Simulation::publish_market_data()
             if (_strategy_orders[trade.aggressor_id] == 0)
                 _strategy_orders.erase(trade.aggressor_id);
         }
+        else if (_source_orders.find(trade.aggressor_id) != _source_orders.end())
+        {
+            _source_orders[trade.aggressor_id] -= trade.quantity;
+            if (_source_orders[trade.aggressor_id] == 0)
+            {
+                _source_orders.erase(trade.aggressor_id);
+                _event_source.on_order_update(trade.aggressor_id, OrderStatus::REMOVED);
+            }
+        }
+
         if (_strategy_orders.find(trade.resting_id) != _strategy_orders.end())
         {
             _strategy.on_execution(ExecutionReport{trade.resting_id, trade.price, trade.quantity});
             _strategy_orders[trade.resting_id] -= trade.quantity;
             if (_strategy_orders[trade.resting_id] == 0)
                 _strategy_orders.erase(trade.resting_id);
+        }
+        else if (_source_orders.find(trade.resting_id) != _source_orders.end())
+        {
+            _source_orders[trade.resting_id] -= trade.quantity;
+            if (_source_orders[trade.resting_id] == 0)
+            {
+                _source_orders.erase(trade.resting_id);
+                _event_source.on_order_update(trade.resting_id, OrderStatus::REMOVED);
+            }
         }
 
         _strategy.on_market_data(TradeEvent{trade.price, trade.quantity});
@@ -94,13 +137,22 @@ void Simulation::process_order_queue()
     {
     case 0:
         submit = std::get<SubmitOrderRequest>(order_request);
-        _matching_engine.process_order(submit.id, submit.side, submit.price, submit.quantity);
-        _strategy_orders[submit.id] = submit.quantity;
+        const MatchingResult matching_result = _matching_engine.process_order(submit.id, submit.side, submit.price, submit.quantity);
+
+        if (matching_result == MatchingResult::RESTING ||
+            matching_result == MatchingResult::PARTIALLY_FILLED ||
+            matching_result == MatchingResult::FULLY_FILLED)
+        {
+            _strategy_orders[submit.id] = submit.quantity;
+        }
         break;
     case 1:
         cancel = std::get<CancelOrderRequest>(order_request);
-        _matching_engine.cancel_order(cancel.id);
-        _strategy_orders[submit.id] = submit.quantity;
+        const CancelResult cancel_result = _matching_engine.cancel_order(cancel.id);
+        if (cancel_result == CancelResult::SUCCESS)
+        {
+            _strategy_orders.erase(cancel.id);
+        }
         break;
     }
 }

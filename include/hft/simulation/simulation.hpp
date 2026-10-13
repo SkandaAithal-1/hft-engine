@@ -36,6 +36,7 @@ private:
     OrderQueue &_order_queue;
 
     std::unordered_map<OrderID, Quantity> _strategy_orders;
+    std::unordered_map<OrderID, Quantity> _source_orders;
     std::uint64_t processed_trade_count{};
     BookUpdate last_published_update{};
 };
