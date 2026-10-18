@@ -1,0 +1,25 @@
+2026-10-17T15:29:47+05:30
+Running ./build/benchmarks/matching_benchmark
+Run on (8 X 4200 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 1.26, 0.83, 0.67
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+---------------------------------------------------------------------------------
+Benchmark                       Time             CPU   Iterations UserCounters...
+---------------------------------------------------------------------------------
+BM_RestingOrder/10            282 ns          285 ns      2748645 items_per_second=3.51363M/s
+BM_RestingOrder/100           307 ns          310 ns      1796530 items_per_second=3.22845M/s
+BM_RestingOrder/1000          364 ns          367 ns      2138146 items_per_second=2.72119M/s
+BM_PartialFill/10             327 ns          329 ns      2164472 items_per_second=3.03951M/s
+BM_PartialFill/100            368 ns          370 ns      2114830 items_per_second=2.70423M/s
+BM_PartialFill/1000           393 ns          396 ns      1586293 items_per_second=2.52802M/s
+BM_FullFill/10                360 ns          362 ns      1958245 items_per_second=2.75921M/s
+BM_FullFill/100               310 ns          312 ns      2008362 items_per_second=3.20872M/s
+BM_FullFill/1000              293 ns          295 ns      2050932 items_per_second=3.39115M/s
+BM_MultiLevelFill/10          702 ns          703 ns       937145 items_per_second=1.42248M/s
+BM_MultiLevelFill/100        5297 ns         5296 ns       100000 items_per_second=188.825k/s
+BM_MultiLevelFill/1000      63386 ns        63369 ns        13769 items_per_second=15.7807k/s

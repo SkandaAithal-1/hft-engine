@@ -1,0 +1,52 @@
+2026-10-18T16:58:02+05:30
+Running ./build-prof/benchmarks/simulation_benchmark
+Run on (8 X 4200 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 0.73, 0.54, 0.28
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+2026-10-18T16:58:09+05:30
+Running ./build-prof/benchmarks/simulation_benchmark
+Run on (8 X 4200 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 0.75, 0.55, 0.28
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+2026-10-18T16:58:17+05:30
+Running ./build-prof/benchmarks/simulation_benchmark
+Run on (8 X 4200 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 0.79, 0.56, 0.29
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+
+ Performance counter stats for './build-prof/benchmarks/simulation_benchmark --benchmark_filter=BM_Simulation_Passive/1000000 --benchmark_min_time=3s' (3 runs):
+
+          7,495.53 msec task-clock:u                     #    1.000 CPUs utilized               ( +-  0.26% )
+                 0      context-switches:u               #    0.000 /sec                      
+                 0      cpu-migrations:u                 #    0.000 /sec                      
+           332,953      page-faults:u                    #   44.420 K/sec                       ( +-  0.00% )
+    28,976,389,205      cycles:u                         #    3.866 GHz                         ( +-  0.05% )  (81.81%)
+    51,599,416,396      instructions:u                   #    1.78  insn per cycle              ( +-  0.03% )  (90.90%)
+    10,002,303,767      branches:u                       #    1.334 G/sec                       ( +-  0.02% )  (90.90%)
+       325,413,301      branch-misses:u                  #    3.25% of all branches             ( +-  0.04% )  (81.80%)
+                        TopdownL1                 #      2.1 %  tma_backend_bound      
+                                                  #     85.8 %  tma_bad_speculation    
+                                                  #      6.3 %  tma_frontend_bound     
+                                                  #      5.8 %  tma_retiring             ( +-  0.03% )  (90.90%)
+    16,007,995,909      L1-dcache-loads:u                #    2.136 G/sec                       ( +-  0.02% )  (90.92%)
+        69,664,195      L1-dcache-load-misses:u          #    0.44% of all L1-dcache accesses   ( +-  0.44% )  (90.92%)
+           551,250      LLC-loads:u                      #   73.544 K/sec                       ( +-  0.74% )  (90.92%)
+           391,818      LLC-load-misses:u                #   71.08% of all LL-cache accesses    ( +-  2.39% )  (90.91%)
+
+            7.4968 +- 0.0194 seconds time elapsed  ( +-  0.26% )
+

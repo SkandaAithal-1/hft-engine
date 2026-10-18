@@ -9,6 +9,7 @@ project(hft-engine
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ------------------------------------------------------------
 # Library
@@ -152,3 +153,27 @@ catch_discover_tests(event_processor_tests)
 catch_discover_tests(simulation_tests)
 catch_discover_tests(synthetic_market_tests)
 catch_discover_tests(simulation_synthetic_market_tests)
+
+include(FetchContent)
+
+option(HFT_BUILD_BENCHMARKS
+    "Build HFT project benchmarks"
+    ON
+)
+
+if (HFT_BUILD_BENCHMARKS)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+
+    FetchContent_Declare(
+        google_benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG v1.9.4
+        GIT_SHALLOW TRUE
+    )
+
+    FetchContent_MakeAvailable(google_benchmark)
+
+    add_subdirectory(benchmarks)
+endif()
