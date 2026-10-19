@@ -1,0 +1,37 @@
+2026-10-19T23:59:17+05:30
+Running ./build/benchmarks/lob_benchmark
+Run on (8 X 4200 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 0.41, 0.70, 0.51
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+------------------------------------------------------------------------------------------
+Benchmark                                Time             CPU   Iterations UserCounters...
+------------------------------------------------------------------------------------------
+BM_InsertExistingLevel/10            35167 ns        35161 ns        19982 items_per_second=28.4403M/s
+BM_InsertExistingLevel/100           35040 ns        35030 ns        19874 items_per_second=28.5466M/s
+BM_InsertExistingLevel/1000          34866 ns        34855 ns        20078 items_per_second=28.6907M/s
+BM_InsertNewLevel/10                114542 ns       114539 ns         6092 items_per_second=8.73064M/s
+BM_InsertNewLevel/100               118398 ns       118392 ns         5914 items_per_second=8.44652M/s
+BM_InsertNewLevel/1000              143112 ns       143087 ns         4871 items_per_second=6.98877M/s
+BM_CancelById/10                       671 ns          671 ns      1052640 items_per_second=14.8955M/s
+BM_CancelById/100                     2738 ns         2735 ns       253875 items_per_second=36.5606M/s
+BM_CancelById/1000                   24358 ns        24338 ns        28867 items_per_second=41.0881M/s
+BM_CancelWithinLevel/10                639 ns          640 ns      1097529 items_per_second=14.073M/s
+BM_CancelWithinLevel/100              2831 ns         2830 ns       247760 items_per_second=34.9809M/s
+BM_CancelWithinLevel/1000            24367 ns        24356 ns        28799 items_per_second=41.016M/s
+BM_CancelFinalOrderAtLevel/10          804 ns          805 ns       877014 items_per_second=12.4282M/s
+BM_CancelFinalOrderAtLevel/100        4360 ns         4359 ns       162333 items_per_second=22.943M/s
+BM_CancelFinalOrderAtLevel/1000      45274 ns        45246 ns        16109 items_per_second=22.1015M/s
+BM_BestBid/10                   1.3626e+13 ns   3.5355e+10 ns            1 items_per_second=0.0282843/s
+BM_BestBid/100                  1.3626e+13 ns   3.5355e+10 ns            1 items_per_second=0.0282843/s
+BM_BestBid/1000                 1.3626e+13 ns   3.5355e+10 ns            1 items_per_second=0.0282842/s
+BM_BestAsk/10                   1.3626e+13 ns   3.5356e+10 ns            1 items_per_second=0.0282841/s
+BM_BestAsk/100                  1.3626e+13 ns   3.5356e+10 ns            1 items_per_second=0.0282841/s
+BM_BestAsk/1000                 1.3626e+13 ns   3.5356e+10 ns            1 items_per_second=0.0282841/s
+BM_MixedInsertCancel/100              4916 ns         4916 ns       136781 items_per_second=40.6826M/s
+BM_MixedInsertCancel/1000            43409 ns        43390 ns        16659 items_per_second=46.0931M/s
+BM_MixedInsertCancel/10000          466328 ns       466166 ns         1540 items_per_second=42.9032M/s

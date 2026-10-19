@@ -45,11 +45,12 @@ CancelResult OrderBook::cancel_order(const OrderID id)
                           ? _bids
                           : _asks;
     auto price_level_it = book_side.find(price);
+    auto& price_level = price_level_it->second;
 
-    book_side[price].total_quantity -= handle.iterator->remaining;
-    book_side[price].orders.erase(handle.iterator);
+    price_level.total_quantity -= handle.iterator->remaining;
+    price_level.orders.erase(handle.iterator);
 
-    if (book_side[price].orders.empty())
+    if (price_level.orders.empty())
         book_side.erase(price_level_it);
 
     _order_index.erase(it);

@@ -134,6 +134,99 @@ namespace
             state.iterations() * static_cast<std::int64_t>(order_count));
     }
 
+    void BM_CancelWithinLevel(benchmark::State &state)
+    {
+        const auto order_count =
+            static_cast<std::size_t>(state.range(0));
+
+        // Leave one order alive so the price level never becomes empty
+        // during the timed cancellation batch.
+        const auto timed_cancel_count = order_count - 1;
+
+        constexpr Side kSide = Side::Buy;
+        constexpr Price kPrice = 100;
+
+        for (auto _ : state)
+        {
+            state.PauseTiming();
+            {
+                OrderBook book(order_count);
+
+                benchmark_utils::populate_same_level(
+                    book,
+                    order_count,
+                    kSide,
+                    kPrice);
+
+                const auto ids =
+                    benchmark_utils::make_order_ids(order_count);
+
+                state.ResumeTiming();
+
+                for (std::size_t i = 0; i < timed_cancel_count; ++i)
+                {
+                    const auto result = book.cancel_order(ids[i]);
+                    benchmark::DoNotOptimize(result);
+                }
+
+                benchmark::DoNotOptimize(book);
+                benchmark::ClobberMemory();
+
+                state.PauseTiming();
+            }
+            state.ResumeTiming();
+        }
+
+        state.SetItemsProcessed(
+            state.iterations() *
+            static_cast<std::int64_t>(timed_cancel_count));
+    }
+
+    void BM_CancelFinalOrderAtLevel(benchmark::State &state)
+    {
+        const auto order_count =
+            static_cast<std::size_t>(state.range(0));
+
+        constexpr Side kSide = Side::Buy;
+        constexpr Price kFirstPrice = 100;
+
+        for (auto _ : state)
+        {
+            state.PauseTiming();
+            {
+                OrderBook book(order_count);
+
+                // Each order occupies its own price level.
+                benchmark_utils::populate_distinct_levels(
+                    book,
+                    order_count,
+                    kSide,
+                    kFirstPrice);
+
+                const auto ids =
+                    benchmark_utils::make_order_ids(order_count);
+
+                state.ResumeTiming();
+
+                for (const auto id : ids)
+                {
+                    const auto result = book.cancel_order(id);
+                    benchmark::DoNotOptimize(result);
+                }
+
+                benchmark::DoNotOptimize(book);
+                benchmark::ClobberMemory();
+
+                state.PauseTiming();
+            }
+            state.ResumeTiming();
+        }
+
+        state.SetItemsProcessed(
+            state.iterations() *
+            static_cast<std::int64_t>(order_count));
+    }
+
     static void BM_BestBid(benchmark::State &state)
     {
         const std::size_t kLevels = static_cast<std::size_t>(state.range(0));
@@ -237,6 +330,10 @@ namespace
     BENCHMARK(BM_InsertNewLevel)->Arg(10)->Arg(100)->Arg(1000);
 
     BENCHMARK(BM_CancelById)->Arg(10)->Arg(100)->Arg(1000);
+
+    BENCHMARK(BM_CancelWithinLevel)->Arg(10)->Arg(100)->Arg(1000);
+
+    BENCHMARK(BM_CancelFinalOrderAtLevel)->Arg(10)->Arg(100)->Arg(1000);
 
     BENCHMARK(BM_BestBid)->Arg(10)->Arg(100)->Arg(1000);
 
