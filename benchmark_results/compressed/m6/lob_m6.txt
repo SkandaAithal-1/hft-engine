@@ -1,0 +1,31 @@
+2026-10-19T20:35:43+05:30
+Running ./build/benchmarks/lob_benchmark
+Run on (8 X 4200 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 0.24, 0.46, 0.34
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+--------------------------------------------------------------------------------------
+Benchmark                            Time             CPU   Iterations UserCounters...
+--------------------------------------------------------------------------------------
+BM_InsertExistingLevel/10        34682 ns        34677 ns        20107 items_per_second=28.8377M/s
+BM_InsertExistingLevel/100       34848 ns        34839 ns        20157 items_per_second=28.7032M/s
+BM_InsertExistingLevel/1000      35152 ns        35131 ns        19893 items_per_second=28.4652M/s
+BM_InsertNewLevel/10            115642 ns       115648 ns         6047 items_per_second=8.64692M/s
+BM_InsertNewLevel/100           122021 ns       122010 ns         5806 items_per_second=8.19603M/s
+BM_InsertNewLevel/1000          151107 ns       151092 ns         4594 items_per_second=6.61849M/s
+BM_CancelById/10                   709 ns          717 ns       971763 items_per_second=13.9466M/s
+BM_CancelById/100                 2911 ns         2916 ns       237512 items_per_second=34.2902M/s
+BM_CancelById/1000               24237 ns        24234 ns        29050 items_per_second=41.2646M/s
+BM_BestBid/10               1.3953e+12 ns   1.8590e+10 ns            1 items_per_second=0.0537934/s
+BM_BestBid/100              1.3953e+12 ns   1.8590e+10 ns            1 items_per_second=0.0537933/s
+BM_BestBid/1000             1.3953e+12 ns   1.8590e+10 ns            1 items_per_second=0.0537933/s
+BM_BestAsk/10               1.3953e+12 ns   1.8590e+10 ns            1 items_per_second=0.0537927/s
+BM_BestAsk/100              1.3953e+12 ns   1.8590e+10 ns            1 items_per_second=0.0537927/s
+BM_BestAsk/1000             1.3953e+12 ns   1.8590e+10 ns            1 items_per_second=0.0537927/s
+BM_MixedInsertCancel/100          4883 ns         4889 ns       143794 items_per_second=40.9069M/s
+BM_MixedInsertCancel/1000        42786 ns        42777 ns        16444 items_per_second=46.7544M/s
+BM_MixedInsertCancel/10000      468198 ns       468074 ns         1497 items_per_second=42.7283M/s

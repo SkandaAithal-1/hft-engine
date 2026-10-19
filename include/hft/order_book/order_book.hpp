@@ -11,7 +11,7 @@
 class OrderBook
 {
 public:
-    OrderBook();
+    explicit OrderBook(std::size_t expected_order_count = 0);
 
     AddResult add_order(const OrderID id, const Side side, const Price price, const Quantity quantity, const Quantity remaining);
 
