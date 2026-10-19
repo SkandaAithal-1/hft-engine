@@ -1,0 +1,19 @@
+2026-10-19T20:40:46+05:30
+Running ./build/benchmarks/simulation_benchmark
+Run on (8 X 4200 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 0.47, 0.66, 0.48
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+----------------------------------------------------------------------------------------
+Benchmark                              Time             CPU   Iterations UserCounters...
+----------------------------------------------------------------------------------------
+BM_Simulation_Passive/10000      2611747 ns      2611776 ns          265 items_per_second=3.82881M/s
+BM_Simulation_Passive/100000    27104123 ns     27102978 ns           26 items_per_second=3.68963M/s
+BM_Simulation_Passive/1000000  273517368 ns    273506861 ns            3 items_per_second=3.65622M/s
+BM_Simulation_Active/10000       2540077 ns      2539813 ns          277 items_per_second=3.9373M/s
+BM_Simulation_Active/100000     26819582 ns     26816806 ns           26 items_per_second=3.729M/s
+BM_Simulation_Active/1000000   269765394 ns    269752880 ns            3 items_per_second=3.7071M/s

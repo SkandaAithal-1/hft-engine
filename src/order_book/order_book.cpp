@@ -1,7 +1,11 @@
 #include <hft/order_book/order_book.hpp>
 #include <hft/order_book/types.hpp>
 
-OrderBook::OrderBook() {}
+OrderBook::OrderBook(const std::size_t expected_order_count)
+{
+    if (expected_order_count > 0)
+        _order_index.reserve(expected_order_count);
+}
 
 AddResult OrderBook::add_order(const OrderID id, const Side side, const Price price, const Quantity quantity, const Quantity remaining)
 {

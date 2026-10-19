@@ -142,7 +142,7 @@ namespace
             // Exclude construction and destruction from the measured interval.
             state.PauseTiming();
             {
-                OrderBook order_book;
+                OrderBook order_book(event_count);
                 TradeSink trade_sink;
 
                 MatchingEngine matching_engine(order_book, trade_sink);

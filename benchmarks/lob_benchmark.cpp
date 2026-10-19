@@ -18,7 +18,7 @@ namespace
         {
             state.PauseTiming();
             {
-                OrderBook book;
+                OrderBook book(initial_orders + kBatchSize);
 
                 // Setup which is excluded from the timed region
                 benchmark_utils::populate_same_level(book, initial_orders, Side::Buy, kPrice);
@@ -54,7 +54,7 @@ namespace
         {
             state.PauseTiming();
             {
-                OrderBook book;
+                OrderBook book(initial_levels + kBatchSize);
 
                 benchmark_utils::populate_distinct_levels(
                     book,
@@ -197,7 +197,7 @@ namespace
         {
             state.PauseTiming();
             {
-                OrderBook book;
+                OrderBook book(2*count);
 
                 benchmark_utils::populate_same_level(
                     book, count, Side::Buy, kPrice);
