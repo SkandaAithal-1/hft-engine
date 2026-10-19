@@ -9,7 +9,7 @@ candidates prioritized\
 reduce operation cost without sacrificing correctness, determinism, or
 maintainability.
 
-------------------------------------------------------------------------
+---
 
 ## 1. Scope and operating principles
 
@@ -19,10 +19,10 @@ The M5 results should remain the reference point for every optimization.
 
 The current limit order book (LOB) uses:
 
--   `std::map` for price levels;
--   `std::list` for FIFO orders within each price level;
--   `std::unordered_map` for order-ID lookup, with handles that identify
-    the price level and order-list iterator.
+- `std::map` for price levels;
+- `std::list` for FIFO orders within each price level;
+- `std::unordered_map` for order-ID lookup, with handles that identify
+  the price level and order-list iterator.
 
 This is a reasonable correctness-oriented baseline. M6 should not
 replace these containers wholesale just because they appear in the
@@ -43,42 +43,46 @@ Do not add lock-free structures, concurrency, custom allocators, or a
 new container layout without evidence that the simpler experiments are
 insufficient.
 
-------------------------------------------------------------------------
+---
 
 ## 2. What the existing profile says
 
 The passive 1-million-event call graph attributes the following costs:
 
-  -----------------------------------------------------------------------------------------------------
-  Function                                Inclusive cost            Self cost Interpretation
-  --------------------------------- -------------------- -------------------- -------------------------
-  `Simulation::run`                               88.17%                1.83% Large execution path, but
-                                                                              most cost is in its
-                                                                              callees
+---
 
-  `EventProcessor::process`                       48.69%                3.06% Significant
-                                                                              event-processing path
+Function Inclusive cost Self cost Interpretation
 
-  `MatchingEngine::process_order`                 31.49%                2.30% Significant matching path
+---
 
-  `OrderBook::add_order`                          19.59%               13.49% High direct cost; first
-                                                                              optimization target
+`Simulation::run` 88.17% 1.83% Large execution path, but
+most cost is in its
+callees
 
-  `SyntheticMarket::next`                         12.36%                6.78% Source generation has
-                                                                              measurable direct cost
+`EventProcessor::process` 48.69% 3.06% Significant
+event-processing path
 
-  `publish_market_data`                           11.29%                4.65% Publication/bookkeeping
-                                                                              is worth investigating
+`MatchingEngine::process_order` 31.49% 2.30% Significant matching path
 
-  `OrderBook::cancel_order`                        8.78%                7.55% High direct cost
+`OrderBook::add_order` 19.59% 13.49% High direct cost; first
+optimization target
 
-  `OrderBook::reduce_order`                        6.65%                4.92% Material direct cost
+`SyntheticMarket::next` 12.36% 6.78% Source generation has
+measurable direct cost
 
-  `OrderBook::quantity_at`                         5.89%                5.70% Almost all attributed
-                                                                              cost is self cost;
-                                                                              inspect implementation
-                                                                              and call frequency
-  -----------------------------------------------------------------------------------------------------
+`publish_market_data` 11.29% 4.65% Publication/bookkeeping
+is worth investigating
+
+`OrderBook::cancel_order` 8.78% 7.55% High direct cost
+
+`OrderBook::reduce_order` 6.65% 4.92% Material direct cost
+
+`OrderBook::quantity_at` 5.89% 5.70% Almost all attributed
+cost is self cost;
+inspect implementation
+and call frequency
+
+---
 
 **Important:** inclusive percentages overlap and must not be summed.
 Self cost is the more useful starting point for ranking direct
@@ -90,13 +94,13 @@ internals, and allocation-related work beneath `add_order`. This
 supports investigating container and allocation costs, but does not by
 itself prove which individual change will be fastest.
 
-------------------------------------------------------------------------
+---
 
 ## 3. Hardware-counter evidence
 
 The attached `perf stat` output measures:
 
-``` text
+```text
 ./build-prof/benchmarks/simulation_benchmark
   --benchmark_filter=BM_Simulation_Passive/1000000
   --benchmark_min_time=3s
@@ -106,78 +110,82 @@ The report aggregates three runs.
 
 ### Recorded counters
 
-  ------------------------------------------------------------------------
-  Counter                            Reported result Initial
-                                                     interpretation
-  --------------------- ---------------------------- ---------------------
-  Task-clock                                 7.496 s About 1.000 CPU
-                                                     utilized; consistent
-                                                     with a
-                                                     single-threaded
-                                                     workload
+---
 
-  Context switches                                 0 No context switches
-                                                     were recorded for
-                                                     this run
+Counter Reported result Initial
+interpretation
 
-  CPU migrations                                   0 No CPU migrations
-                                                     were recorded
+---
 
-  Page faults                                332,953 High enough to
-                                                     investigate; this
-                                                     counter alone does
-                                                     not distinguish minor
-                                                     from major faults
+Task-clock 7.496 s About 1.000 CPU
+utilized; consistent
+with a
+single-threaded
+workload
 
-  Cycles                               28.98 billion About 3.866 GHz
-                                                     average over
-                                                     task-clock
+Context switches 0 No context switches
+were recorded for
+this run
 
-  Instructions                         51.60 billion 1.78 instructions per
-                                                     cycle (IPC)
+CPU migrations 0 No CPU migrations
+were recorded
 
-  Branches                             10.00 billion Large dynamic branch
-                                                     count
+Page faults 332,953 High enough to
+investigate; this
+counter alone does
+not distinguish minor
+from major faults
 
-  Branch misses                        325.4 million 3.25% branch-miss
-                                                     rate; branch behavior
-                                                     is worth
-                                                     investigating
+Cycles 28.98 billion About 3.866 GHz
+average over
+task-clock
 
-  L1 data-cache loads                  16.01 billion Large number of data
-                                                     accesses
+Instructions 51.60 billion 1.78 instructions per
+cycle (IPC)
 
-  L1 data-cache load                   69.66 million 0.44% reported miss
-  misses                                             rate
+Branches 10.00 billion Large dynamic branch
+count
 
-  LLC loads                                  551,250 Reported count is
-                                                     small relative to L1
-                                                     accesses
+Branch misses 325.4 million 3.25% branch-miss
+rate; branch behavior
+is worth
+investigating
 
-  LLC load misses                            391,818 71.08% of reported
-                                                     LLC loads; the
-                                                     absolute count is
-                                                     comparatively small
+L1 data-cache loads 16.01 billion Large number of data
+accesses
 
-  Topdown backend bound                         2.1% Does not indicate a
-                                                     dominant
-                                                     backend-bound
-                                                     bottleneck in this
-                                                     report
+L1 data-cache load 69.66 million 0.44% reported miss
+misses rate
 
-  Topdown frontend                              6.3% Not the leading
-  bound                                              Topdown category
-                                                     reported
+LLC loads 551,250 Reported count is
+small relative to L1
+accesses
 
-  Topdown retiring                              5.8% Low reported retiring
-                                                     fraction
+LLC load misses 391,818 71.08% of reported
+LLC loads; the
+absolute count is
+comparatively small
 
-  Topdown bad                                  85.8% Extremely high
-  speculation                                        reported value; must
-                                                     be validated before
-                                                     treating it as a
-                                                     reliable diagnosis
-  ------------------------------------------------------------------------
+Topdown backend bound 2.1% Does not indicate a
+dominant
+backend-bound
+bottleneck in this
+report
+
+Topdown frontend 6.3% Not the leading
+bound Topdown category
+reported
+
+Topdown retiring 5.8% Low reported retiring
+fraction
+
+Topdown bad 85.8% Extremely high
+speculation reported value; must
+be validated before
+treating it as a
+reliable diagnosis
+
+---
 
 Counter coverage varied by event (roughly 81.8--90.9%), so events were
 not all measured with identical coverage. The output also warns that CPU
@@ -217,7 +225,7 @@ version. Keep the same workload and compare against the baseline. Avoid
 combining too many events in one group if that causes substantial
 multiplexing.
 
-------------------------------------------------------------------------
+---
 
 ## 4. Prioritized M6 candidates
 
@@ -229,11 +237,11 @@ internals, and allocation-related work.
 
 **Hypotheses to test:**
 
--   Runtime hash-map rehashes contribute to insertion cost.
--   Creating a new price level costs more than inserting into an
-    existing level.
--   Allocations for list nodes, tree nodes, or hash-table nodes
-    contribute materially.
+- Runtime hash-map rehashes contribute to insertion cost.
+- Creating a new price level costs more than inserting into an
+  existing level.
+- Allocations for list nodes, tree nodes, or hash-table nodes
+  contribute materially.
 
 **First experiment: capacity reservation**
 
@@ -241,12 +249,12 @@ Reserve a realistic expected active-order capacity in the order-ID map,
 where that capacity is known from the workload. Compare the current
 implementation against the reserved variant.
 
--   Measure both existing-price-level and new-price-level insertion.
--   Measure end-to-end throughput as well as the microbenchmark.
--   Record memory usage or capacity overhead where possible.
--   Do not reserve an arbitrarily huge capacity: reservation trades
-    memory for fewer rehashes and may not help if the workload rarely
-    reaches that size.
+- Measure both existing-price-level and new-price-level insertion.
+- Measure end-to-end throughput as well as the microbenchmark.
+- Record memory usage or capacity overhead where possible.
+- Do not reserve an arbitrarily huge capacity: reservation trades
+  memory for fewer rehashes and may not help if the workload rarely
+  reaches that size.
 
 **Follow-up only if justified:** investigate allocation counts and
 consider an order-node pool or allocator strategy. Do not implement a
@@ -258,12 +266,12 @@ pool merely because allocation functions appear in the call graph.
 
 **Hypotheses to test:**
 
--   The order-ID handle may already provide the information needed for
-    removal, so repeated lookup or validation work may be avoidable.
--   Removing the last order at a price level requires an additional
-    price-level tree erase.
--   Cancellation cost may differ significantly between nonempty and
-    emptied price levels.
+- The order-ID handle may already provide the information needed for
+  removal, so repeated lookup or validation work may be avoidable.
+- Removing the last order at a price level requires an additional
+  price-level tree erase.
+- Cancellation cost may differ significantly between nonempty and
+  emptied price levels.
 
 **First experiment:** benchmark cancellation separately for (a) an order
 whose price level remains populated and (b) the last order at a price
@@ -295,12 +303,12 @@ semantics.
 The high self-cost fraction makes this worth inspecting, but the profile
 alone does not reveal the algorithm.
 
--   If it scans the orders at a level despite an existing aggregate
-    quantity, use the aggregate if the API semantics permit it.
--   If it performs a tree lookup, determine whether repeated calls can
-    be avoided or whether the call site already has the level.
--   If it is rarely called in the end-to-end workload, a microbenchmark
-    speedup may have little total effect.
+- If it scans the orders at a level despite an existing aggregate
+  quantity, use the aggregate if the API semantics permit it.
+- If it performs a tree lookup, determine whether repeated calls can
+  be avoided or whether the call site already has the level.
+- If it is rarely called in the end-to-end workload, a microbenchmark
+  speedup may have little total effect.
 
 Do not change the implementation until the code and call sites establish
 which case applies.
@@ -326,11 +334,11 @@ one order's state to leak into another.
 
 Inspect the implementation for:
 
--   repeated order-ID lookups during trade processing;
--   repeated best-bid/best-ask recomputation for one incoming order that
-    produces multiple trades;
--   publication of unchanged BBO state;
--   unnecessary copying or redundant strategy/source bookkeeping.
+- repeated order-ID lookups during trade processing;
+- repeated best-bid/best-ask recomputation for one incoming order that
+  produces multiple trades;
+- publication of unchanged BBO state;
+- unnecessary copying or redundant strategy/source bookkeeping.
 
 The existing last-published-update tracking should already suppress
 unchanged updates if correctly applied; verify its effectiveness before
@@ -357,13 +365,16 @@ random draws changes the generated event sequence and potentially the
 workload distribution. Keep a fixed seed and treat a generator change as
 a distinct experiment, not a transparent implementation detail.
 
-------------------------------------------------------------------------
+---
 
 ## 5. Execution order
 
-  --------------------------------------------------------------------------------------------
+---
+
                   Order Change or investigation Why now             Required evaluation
-  --------------------- ----------------------- ------------------- --------------------------
+
+---
+
                       0 Freeze M5 benchmark     Establish a         Save commands, build
                         results and             trustworthy         configuration, workload
                         configuration           comparison point    parameters, seed, and
@@ -395,35 +406,36 @@ a distinct experiment, not a transparent implementation detail.
 
                       7 Inspect source          Meaningful source   Fixed-seed throughput and
                         generation and RNG      overhead, but       output-distribution checks
-                                                workload-specific   
+                                                workload-specific
 
                       8 Consider pools or       Higher complexity   Before/after benchmarks,
                         container-layout        and larger          memory measurements, full
                         changes only if         correctness surface correctness suite
-                        justified                                   
-  --------------------------------------------------------------------------------------------
+                        justified
+
+---
 
 This ordering is a starting plan, not a commitment to implement every
 candidate. If an experiment shows negligible end-to-end improvement,
 document the result and move on.
 
-------------------------------------------------------------------------
+---
 
 ## 6. Benchmarking and validation protocol
 
 For each change, capture:
 
--   **Microbenchmark:** operation-specific latency or throughput.
--   **End-to-end benchmark:** events per second on the same passive
-    1-million-event workload, plus any relevant active-strategy
-    workload.
--   **Correctness:** existing unit tests, invariants, and deterministic
-    replay.
--   **Memory:** capacity or allocation impact when relevant.
--   **Environment:** compiler/build type, benchmark command, CPU scaling
-    status, and whether the machine was otherwise idle.
--   **Repeatability:** multiple runs and the distribution or variation,
-    not only the best run.
+- **Microbenchmark:** operation-specific latency or throughput.
+- **End-to-end benchmark:** events per second on the same passive
+  1-million-event workload, plus any relevant active-strategy
+  workload.
+- **Correctness:** existing unit tests, invariants, and deterministic
+  replay.
+- **Memory:** capacity or allocation impact when relevant.
+- **Environment:** compiler/build type, benchmark command, CPU scaling
+  status, and whether the machine was otherwise idle.
+- **Repeatability:** multiple runs and the distribution or variation,
+  not only the best run.
 
 Use the same build configuration and benchmark parameters before and
 after each change. CPU frequency scaling was enabled in the supplied
@@ -437,38 +449,42 @@ equivalent.
 
 ### Suggested result log
 
-  ---------------------------------------------------------------------------------------
-  Experiment          Microbenchmark   End-to-end   Correctness   Memory      Decision
-                      result           result                     impact      
-  ------------------- ---------------- ------------ ------------- ----------- -----------
-  Baseline            M5 value         M5 value     Pass          Baseline    Frozen
+---
 
-  Reserve order-ID    To measure       To measure   To verify     To measure  Pending
-  map                                                                         
+Experiment Microbenchmark End-to-end Correctness Memory Decision
+result result impact
 
-  Cancellation-path   To measure       To measure   To verify     To measure  Pending
-  change                                                                      
+---
 
-  Further experiments To measure       To measure   To verify     To measure  Pending
-  ---------------------------------------------------------------------------------------
+Baseline M5 value M5 value Pass Baseline Frozen
 
-------------------------------------------------------------------------
+Reserve order-ID To measure To measure To verify To measure Pending
+map
+
+Cancellation-path To measure To measure To verify To measure Pending
+change
+
+Further experiments To measure To measure To verify To measure Pending
+
+---
+
+---
 
 ## 7. Explicitly deferred work
 
 Do not begin these solely on the basis of the current profile:
 
--   replacing `std::map` or `std::list` wholesale;
--   introducing custom allocators or pools before confirming allocation
-    cost;
--   lock-free data structures or concurrent matching;
--   cache-line alignment or broad data-layout redesign;
--   replacing the RNG without a controlled performance and
-    reproducibility comparison.
+- replacing `std::map` or `std::list` wholesale;
+- introducing custom allocators or pools before confirming allocation
+  cost;
+- lock-free data structures or concurrent matching;
+- cache-line alignment or broad data-layout redesign;
+- replacing the RNG without a controlled performance and
+  reproducibility comparison.
 
 These are possible later directions, not requirements for M6.
 
-------------------------------------------------------------------------
+---
 
 ## 8. Exit criteria for M6
 
@@ -541,3 +557,65 @@ Record the exact baseline and optimized benchmark JSON paths, compiler/build con
 ### 8. Follow-up
 
 Proceed to `cancel_order()` as the next optimization candidate. Benchmark cancellation both when the price level remains populated and when cancellation removes its final order.
+
+## M6-02: Remove Redundant Price-Level Lookups in `cancel_order()`
+
+**Status:** Retain optimization, subject to regression validation  
+**Target:** `OrderBook::cancel_order()`  
+**Optimization branch:** `m6/02-cancel-order`
+
+### Motivation
+
+Profiling identified `cancel_order()` as a significant contributor to runtime, accounting for 8.78% inclusive time and 7.55% self time in the M5 profile. The existing implementation performed a price-level lookup using `find(price)`, followed by repeated `operator[]` accesses to the same price level. These accesses introduced redundant tree lookups.
+
+### Change
+
+Reused the iterator returned by `book_side.find(price)` to obtain a reference to the existing `PriceLevel`. Updated the aggregate quantity, erased the order, checked whether the level was empty, and removed the level using the existing iterator.
+
+This eliminates repeated price-level lookups without changing the underlying data structures or intended cancellation semantics.
+
+### Benchmark Results
+
+Compared the median batch execution times from the before-and-after Google Benchmark JSON results.
+
+| Benchmark                        | Batch size | Before (ns) | After (ns) | Reduction |
+| -------------------------------- | ---------: | ----------: | ---------: | --------: |
+| Cancel within level              |         10 |     698.945 |    644.509 |      7.8% |
+| Cancel within level              |        100 |   3,030.201 |  2,769.509 |      8.6% |
+| Cancel within level              |      1,000 |  25,589.905 | 23,061.946 |      9.9% |
+| Cancel final order at each level |         10 |     902.714 |    790.753 |     12.4% |
+| Cancel final order at each level |        100 |   5,306.517 |  4,573.592 |     13.8% |
+| Cancel final order at each level |      1,000 |  58,652.675 | 43,549.555 |     25.8% |
+
+The benchmark batches cancel all but one order from a shared price level in the first case, and remove the final order from each distinct price level in the second. The reported times are for the entire cancellation batch, not individual cancellations.
+
+### Interpretation
+
+Both workloads improved across all tested sizes. The reduction was approximately 8–10% for cancellations within an existing level and 12–26% when removing final orders from price levels.
+
+The larger improvement in the final-order workload is consistent with the benefit of eliminating redundant lookups in a path that also removes price levels. However, these results do not isolate the exact contribution of each operation.
+
+The runs were conducted with CPU frequency scaling enabled, and system load differed between the before and after measurements. Therefore, the observed reductions are promising but should not be treated as definitive, hardware-independent speedups.
+
+### Decision
+
+Retain the change because it removes redundant work while preserving the existing data structures and cancellation algorithm.
+
+Before merging, validate:
+
+- Successful cancellation and `NOT_FOUND` behavior.
+- Correct updates to order count and aggregate price-level quantity.
+- Correct removal of empty price levels.
+- Correct best-bid and best-ask results after cancellation.
+- Regression tests and the full LOB and end-to-end simulation benchmarks.
+
+### Artifacts
+
+- Before: `benchmark_results/detailed/m6/02_cancel_before.json`
+- After: `benchmark_results/detailed/m6/02_cancel_after.json`
+
+Keep the raw benchmark outputs for reproducibility. Record the actual repository paths if the files are stored elsewhere.
+
+### Next Step
+
+After correctness and regression validation, checkpoint and merge this optimization. Proceed to `reduce_order()` and `quantity_at()` as subsequent profiling candidates, evaluating each change independently against the current best version.
