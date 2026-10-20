@@ -597,6 +597,21 @@ The larger improvement in the final-order workload is consistent with the benefi
 
 The runs were conducted with CPU frequency scaling enabled, and system load differed between the before and after measurements. Therefore, the observed reductions are promising but should not be treated as definitive, hardware-independent speedups.
 
+### Post-Optimization Profiling
+
+After applying the change, the profiling results showed a substantial reduction in the contribution of `OrderBook::cancel_order()` to the overall runtime.
+
+This is consistent with the microbenchmark results, which showed lower cancellation batch times across both workloads: cancellation within an existing price level and cancellation that removes the final order at a price level.
+
+The two measurements provide complementary evidence:
+
+- **Microbenchmarks** isolate cancellation behavior and demonstrate improvements across the tested workload sizes.
+- **End-to-end profiling** indicates that the contribution attributed to `cancel_order()` has decreased in the full simulation workload.
+
+The profiling percentages should be interpreted relative to the total runtime of each run. A lower percentage alone does not establish the absolute time saved, since other functions and the total runtime may also change.
+
+**Decision:** The profiling evidence supports retaining this optimization, pending correctness tests and end-to-end benchmark regression checks.
+
 ### Decision
 
 Retain the change because it removes redundant work while preserving the existing data structures and cancellation algorithm.
@@ -619,3 +634,76 @@ Keep the raw benchmark outputs for reproducibility. Record the actual repository
 ### Next Step
 
 After correctness and regression validation, checkpoint and merge this optimization. Proceed to `reduce_order()` and `quantity_at()` as subsequent profiling candidates, evaluating each change independently against the current best version.
+
+## M6-03: Cache Price-Level Iterator in OrderHandle
+
+**Status:** Accepted  
+**Optimization area:** Order cancellation and quantity reduction  
+**Primary target:** `OrderBook::reduce_order()` and `OrderBook::cancel_order()`
+
+### Motivation
+
+Profiling identified `reduce_order()` as a significant contributor to execution cost, accounting for **8.57% inclusive cost and 5.96% self cost** in the original profile. Both `reduce_order()` and `cancel_order()` performed an additional price-level lookup using `std::map::find()` after locating an order through `_order_index`.
+
+Since each order already has a handle in `_order_index`, storing the corresponding price-level iterator provides a way to avoid repeating this lookup.
+
+### Change
+
+Extended `OrderHandle` to store the iterator to its corresponding price level, in addition to the existing price and order-list iterator.
+
+- Updated `add_order()` to record the price-level iterator when creating an order handle.
+- Updated `reduce_order()` to use the cached iterator instead of searching the side's price-level map again.
+- Updated `cancel_order()` to use the cached iterator for price-level access and removal.
+- Preserved the existing order-book API and matching semantics.
+
+The cached iterator remains valid while its price-level map entry exists. When removing the final order at a price level, the implementation must not access the cached iterator after erasing that level. The iterator should be copied by value before erasing the corresponding `_order_index` entry, rather than referenced through the entry being erased.
+
+### Microbenchmark Results
+
+The reduction benchmarks covered three workloads:
+
+1. **Partial reduction:** Reduce quantity while retaining the order.
+2. **Full reduction within a shared level:** Remove orders while leaving another order at the same price.
+3. **Full reduction at separate levels:** Remove the final order at each price level.
+
+The pre-change median results were:
+
+| Workload                        | Orders processed | Median batch time | Approx. time per order |
+| ------------------------------- | ---------------: | ----------------: | ---------------------: |
+| Partial reduction               |               10 |          474.9 ns |                47.5 ns |
+| Partial reduction               |              100 |          925.9 ns |                 9.3 ns |
+| Partial reduction               |            1,000 |          5.706 µs |                5.71 ns |
+| Full reduction, shared level    |               10 |          627.0 ns |                69.7 ns |
+| Full reduction, shared level    |              100 |          2.650 µs |                26.8 ns |
+| Full reduction, shared level    |            1,000 |         23.188 µs |                23.2 ns |
+| Full reduction, separate levels |               10 |          783.8 ns |                78.4 ns |
+| Full reduction, separate levels |              100 |          4.301 µs |                43.0 ns |
+| Full reduction, separate levels |            1,000 |         41.442 µs |                41.4 ns |
+
+Removing the final order at a price level remained more expensive because it also requires removing the price-level entry from the ordered map. Caching the iterator removes the repeated lookup but does not eliminate that operation.
+
+Post-change microbenchmarks and correctness tests were completed. The change was retained.
+
+### Profiling Results
+
+| Metric         | Before | After | Relative reduction |
+| -------------- | -----: | ----: | -----------------: |
+| Inclusive cost |  8.57% | 5.13% |              40.1% |
+| Self cost      |  5.96% | 3.32% |              44.3% |
+
+These percentages represent shares of sampled profiling cost, not direct measurements of absolute execution time. The results indicate that `reduce_order()` accounts for a substantially smaller share of the profile after the change.
+
+### Decision
+
+**Accepted and retained.**
+
+The stored price-level iterator removes redundant tree lookups from both cancellation and quantity reduction. Correctness validation, microbenchmarking, and re-profiling supported retaining the change.
+
+The profile improvement is encouraging, but its percentages should not be interpreted as equivalent end-to-end speedups. Overall simulation performance must be assessed separately using the established end-to-end benchmarks.
+
+### Artifacts
+
+- Pre-change reduction benchmark: `benchmark_results/detailed/m6/03_reduce_before.json`
+- Post-change reduction benchmark: `benchmark_results/detailed/m6/03_reduce_after.json`
+- Cancellation benchmark results: `benchmark_results/detailed/m6/02_cancel_before.json` and `benchmark_results/detailed/m6/02_cancel_after.json`
+- Updated profiling output: record the path to the saved profile or call-graph report here.

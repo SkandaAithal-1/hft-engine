@@ -1,0 +1,22 @@
+2026-10-21T00:16:07+05:30
+Running ./build/benchmarks/lob_benchmark
+Run on (8 X 4200 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 0.96, 0.40, 0.41
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+------------------------------------------------------------------------------------------------
+Benchmark                                      Time             CPU   Iterations UserCounters...
+------------------------------------------------------------------------------------------------
+BM_ReduceOrder_Partial/10                    459 ns          460 ns      1502983 items_per_second=21.7206M/s
+BM_ReduceOrder_Partial/100                   801 ns          800 ns       837095 items_per_second=125.039M/s
+BM_ReduceOrder_Partial/1000                 4740 ns         4718 ns       156772 items_per_second=211.95M/s
+BM_ReduceOrder_FullWithinLevel/10            641 ns          643 ns      1063280 items_per_second=14.0061M/s
+BM_ReduceOrder_FullWithinLevel/100          2614 ns         2613 ns       264561 items_per_second=37.8921M/s
+BM_ReduceOrder_FullWithinLevel/1000        22992 ns        22987 ns        30467 items_per_second=43.4596M/s
+BM_ReduceOrder_FinalOrderAtLevel/10          771 ns          773 ns       899203 items_per_second=12.9424M/s
+BM_ReduceOrder_FinalOrderAtLevel/100        4116 ns         4115 ns       168612 items_per_second=24.3016M/s
+BM_ReduceOrder_FinalOrderAtLevel/1000      41143 ns        41104 ns        18588 items_per_second=24.3288M/s
