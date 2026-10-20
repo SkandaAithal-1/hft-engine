@@ -27,7 +27,7 @@ AddResult OrderBook::add_order(const OrderID id, const Side side, const Price pr
 
     book_side[price].orders.emplace_back(id, side, price, quantity, remaining, ++sequence_counter);
     book_side[price].total_quantity += quantity;
-    _order_index[id] = OrderHandle{price, std::prev(book_side[price].orders.end())};
+    _order_index[id] = OrderHandle{price, std::prev(book_side[price].orders.end()), book_side.find(price)};
 
     return AddResult::SUCCESS;
 }
@@ -44,8 +44,8 @@ CancelResult OrderBook::cancel_order(const OrderID id)
     auto &book_side = (side == Side::Buy)
                           ? _bids
                           : _asks;
-    auto price_level_it = book_side.find(price);
-    auto& price_level = price_level_it->second;
+    auto price_level_it = handle.price_level_iterator; 
+    auto &price_level = price_level_it->second;
 
     price_level.total_quantity -= handle.iterator->remaining;
     price_level.orders.erase(handle.iterator);
@@ -125,7 +125,7 @@ ReduceResult OrderBook::reduce_order(const OrderID id, const Quantity quantity)
                      ? _bids
                      : _asks;
 
-    auto price_level_it = side.find(order_it->price);
+    auto price_level_it = it->second.price_level_iterator;
     price_level_it->second.total_quantity -= quantity;
 
     if (order_it->remaining == 0)

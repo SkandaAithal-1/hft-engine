@@ -7,6 +7,10 @@
 
 namespace
 {
+    static constexpr Price kReducePrice = 100;
+    static constexpr Quantity kInitialQuantity = 10;
+    static constexpr Quantity kPartialReduction = 1;
+
     void BM_InsertExistingLevel(benchmark::State &state)
     {
         const auto initial_orders = static_cast<std::size_t>(state.range(0));
@@ -325,6 +329,135 @@ namespace
             state.iterations() * static_cast<int64_t>(count) * 2);
     }
 
+    static void BM_ReduceOrder_Partial(benchmark::State& state)
+    {
+        const auto n = static_cast<std::size_t>(state.range(0));
+
+        for (auto _ : state)
+        {
+            state.PauseTiming();
+            {
+                OrderBook book(n);
+
+                for (std::size_t i = 0; i < n; ++i)
+                {
+                    book.add_order(
+                        static_cast<OrderID>(i + 1),
+                        Side::Buy,
+                        kReducePrice,
+                        kInitialQuantity,
+                        kInitialQuantity
+                    );
+                }
+
+                state.ResumeTiming();
+
+                for (std::size_t i = 0; i < n; ++i)
+                {
+                    book.reduce_order(
+                        static_cast<OrderID>(i + 1),
+                        kPartialReduction
+                    );
+                }
+
+                state.PauseTiming();
+            }
+            state.ResumeTiming();
+        }
+
+        state.SetItemsProcessed(
+            state.iterations() * static_cast<int64_t>(n)
+        );
+    }
+
+    // Full reduction: the price level remains populated.
+    static void BM_ReduceOrder_FullWithinLevel(
+        benchmark::State& state)
+    {
+        const auto n = static_cast<std::size_t>(state.range(0));
+
+        for (auto _ : state)
+        {
+            state.PauseTiming();
+            {
+                OrderBook book(n);
+
+                // Leave one order at the level so every timed
+                // reduction removes an order but preserves the level.
+                for (std::size_t i = 0; i < n; ++i)
+                {
+                    book.add_order(
+                        static_cast<OrderID>(i + 1),
+                        Side::Buy,
+                        kReducePrice,
+                        kInitialQuantity,
+                        kInitialQuantity
+                    );
+                }
+
+                state.ResumeTiming();
+
+                for (std::size_t i = 0; i + 1 < n; ++i)
+                {
+                    book.reduce_order(
+                        static_cast<OrderID>(i + 1),
+                        kInitialQuantity
+                    );
+                }
+
+                state.PauseTiming();
+            }
+            state.ResumeTiming();
+        }
+
+        state.SetItemsProcessed(
+            state.iterations() * static_cast<int64_t>(n - 1)
+        );
+    }
+
+    // Full reduction: every order is the only order at its price level.
+    static void BM_ReduceOrder_FinalOrderAtLevel(
+        benchmark::State& state)
+    {
+        const auto n = static_cast<std::size_t>(state.range(0));
+
+        for (auto _ : state)
+        {
+            state.PauseTiming();
+            {
+                OrderBook book(n);
+
+                for (std::size_t i = 0; i < n; ++i)
+                {
+                    book.add_order(
+                        static_cast<OrderID>(i + 1),
+                        Side::Buy,
+                        static_cast<Price>(kReducePrice + i),
+                        kInitialQuantity,
+                        kInitialQuantity
+                    );
+                }
+
+                state.ResumeTiming();
+
+                for (std::size_t i = 0; i < n; ++i)
+                {
+                    book.reduce_order(
+                        static_cast<OrderID>(i + 1),
+                        kInitialQuantity
+                    );
+                }
+
+                state.PauseTiming();
+            }
+            state.ResumeTiming();
+        }
+
+        state.SetItemsProcessed(
+            state.iterations() * static_cast<int64_t>(n)
+        );
+    }
+
     BENCHMARK(BM_InsertExistingLevel)->Arg(10)->Arg(100)->Arg(1000);
 
     BENCHMARK(BM_InsertNewLevel)->Arg(10)->Arg(100)->Arg(1000);
@@ -340,6 +473,12 @@ namespace
     BENCHMARK(BM_BestAsk)->Arg(10)->Arg(100)->Arg(1000);
 
     BENCHMARK(BM_MixedInsertCancel)->Arg(100)->Arg(1000)->Arg(10000);
+
+    BENCHMARK(BM_ReduceOrder_Partial)->Arg(10)->Arg(100)->Arg(1000);
+
+    BENCHMARK(BM_ReduceOrder_FullWithinLevel)->Arg(10)->Arg(100)->Arg(1000);
+
+    BENCHMARK(BM_ReduceOrder_FinalOrderAtLevel)->Arg(10)->Arg(100)->Arg(1000);
 } // namespace
 
 BENCHMARK_MAIN();
