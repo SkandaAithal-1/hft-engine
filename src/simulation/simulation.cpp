@@ -68,34 +68,38 @@ void Simulation::publish_market_data()
     {
         const Trade &trade = _trade_sink[processed_trade_count++];
 
-        if (_strategy_orders.find(trade.aggressor_id) != _strategy_orders.end())
+        auto strategy_aggressor_it = _strategy_orders.find(trade.aggressor_id);
+        auto strategy_resting_it = _strategy_orders.find(trade.resting_id);
+        auto source_aggressor_it = _source_orders.find(trade.aggressor_id);
+        auto source_resting_it = _source_orders.find(trade.resting_id);
+        if (strategy_aggressor_it != _strategy_orders.end())
         {
             _strategy.on_execution(ExecutionReport{trade.aggressor_id, trade.price, trade.quantity});
-            _strategy_orders[trade.aggressor_id] -= trade.quantity;
-            if (_strategy_orders[trade.aggressor_id] == 0)
+            strategy_aggressor_it->second -= trade.quantity;
+            if (strategy_aggressor_it->second == 0)
                 _strategy_orders.erase(trade.aggressor_id);
         }
-        else if (_source_orders.find(trade.aggressor_id) != _source_orders.end())
+        else if (source_aggressor_it != _source_orders.end())
         {
-            _source_orders[trade.aggressor_id] -= trade.quantity;
-            if (_source_orders[trade.aggressor_id] == 0)
+            source_aggressor_it->second -= trade.quantity;
+            if (source_aggressor_it->second == 0)
             {
                 _source_orders.erase(trade.aggressor_id);
                 _event_source.on_order_update(trade.aggressor_id, OrderStatus::REMOVED);
             }
         }
 
-        if (_strategy_orders.find(trade.resting_id) != _strategy_orders.end())
+        if (strategy_resting_it != _strategy_orders.end())
         {
             _strategy.on_execution(ExecutionReport{trade.resting_id, trade.price, trade.quantity});
-            _strategy_orders[trade.resting_id] -= trade.quantity;
-            if (_strategy_orders[trade.resting_id] == 0)
+            strategy_resting_it->second -= trade.quantity;
+            if (strategy_resting_it->second == 0)
                 _strategy_orders.erase(trade.resting_id);
         }
-        else if (_source_orders.find(trade.resting_id) != _source_orders.end())
+        else if (source_resting_it != _source_orders.end())
         {
-            _source_orders[trade.resting_id] -= trade.quantity;
-            if (_source_orders[trade.resting_id] == 0)
+            source_resting_it->second -= trade.quantity;
+            if (source_resting_it->second == 0)
             {
                 _source_orders.erase(trade.resting_id);
                 _event_source.on_order_update(trade.resting_id, OrderStatus::REMOVED);
@@ -105,18 +109,18 @@ void Simulation::publish_market_data()
         _strategy.on_market_data(TradeEvent{trade.price, trade.quantity});
     }
 
-    const std::optional<Order> best_bid = _order_book.best_bid();
-    const std::optional<Order> best_ask = _order_book.best_ask();
+    const std::optional<BestLevel> best_bid = _order_book.best_bid_price_with_quantity();
+    const std::optional<BestLevel> best_ask = _order_book.best_ask_price_with_quantity();
     BookUpdate next_update{};
     if (best_bid)
     {
         next_update.best_bid = best_bid->price;
-        next_update.bid_quantity = _order_book.quantity_at(Side::Buy, best_bid->price);
+        next_update.bid_quantity = best_bid->total_quantity;
     }
     if (best_ask)
     {
         next_update.best_ask = best_ask->price;
-        next_update.ask_quantity = _order_book.quantity_at(Side::Sell, best_ask->price);
+        next_update.ask_quantity = best_ask->total_quantity;
     }
 
     if (next_update != last_published_update)

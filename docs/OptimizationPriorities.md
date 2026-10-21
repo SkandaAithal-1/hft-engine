@@ -707,3 +707,75 @@ The profile improvement is encouraging, but its percentages should not be interp
 - Post-change reduction benchmark: `benchmark_results/detailed/m6/03_reduce_after.json`
 - Cancellation benchmark results: `benchmark_results/detailed/m6/02_cancel_before.json` and `benchmark_results/detailed/m6/02_cancel_after.json`
 - Updated profiling output: record the path to the saved profile or call-graph report here.
+
+## M6-04: Combined Best-Level Price and Quantity Lookup
+
+**Status:** Accepted and retained  
+**Optimization area:** Order book queries and market-data publication  
+**Primary target:** `Simulation::publish_market_data()`
+
+### Motivation
+
+Profiling identified `Simulation::publish_market_data()` as a potential optimization target. Under DWARF-based profiling, the `quantity_at()` calls were a significant contributor to the function's cost.
+
+The existing implementation retrieved the best bid and ask using `best_bid()` and `best_ask()`, then performed additional `quantity_at()` lookups to obtain the aggregate quantities at those prices. Each additional lookup required searching the corresponding `std::map` of price levels.
+
+### Change
+
+Added two new `OrderBook` query functions:
+
+- `best_bid_price_with_quantity()`
+- `best_ask_price_with_quantity()`
+
+Each function returns the best price together with the aggregate quantity at that price level, avoiding the need for a separate `quantity_at()` lookup.
+
+Updated `Simulation::publish_market_data()` to use these functions when constructing the `BookUpdate`.
+
+The existing `best_bid()` and `best_ask()` APIs were preserved, avoiding unnecessary changes to existing callers and unit tests.
+
+### Benchmark Results
+
+The 1,000,000-event passive simulation benchmark produced the following throughput measurements:
+
+| Metric | Throughput |
+|---|---:|
+| M5 baseline | Approximately 3.6M items/s |
+| Optimized implementation | Approximately 4.6M items/s |
+| Absolute increase | Approximately 1.0M items/s |
+| Relative throughput increase | Approximately 27.8% |
+
+The relative increase is calculated as:
+
+\[
+\frac{4.6-3.6}{3.6}\times100
+\approx 27.8\%
+\]
+
+The optimized benchmark was run with five repetitions. The reported throughput values are approximate; exact per-repetition measurements and dispersion statistics are not recorded in this entry.
+
+**Benchmark artifact:** `benchmark_results/detailed/m6/04-after-best-level.json`
+
+The available results indicate a substantial improvement in end-to-end passive simulation throughput. However, without the corresponding per-repetition baseline data and variability statistics, the precise magnitude and statistical consistency of the improvement cannot be established from these aggregate figures alone.
+
+### Profiling Observations
+
+The profiling results showed less improvement than the end-to-end benchmark.
+
+DWARF-based and frame-pointer-based profiles also attributed different proportions of execution cost to `publish_market_data()`. Consequently, the profiling percentages were treated as diagnostic evidence rather than as direct measurements of the optimization's speedup.
+
+The benchmark improvement is consistent with eliminating the separate price-level quantity lookups, although the available measurements do not isolate their contribution from all other execution costs.
+
+### Correctness and Compatibility
+
+- Existing `best_bid()` and `best_ask()` APIs were retained.
+- Existing unit tests passed.
+- `Simulation::publish_market_data()` now obtains the best price and aggregate quantity together.
+- The optimization preserves the requirement that the published quantity represents the total quantity at the best price level, rather than the remaining quantity of an individual order.
+
+### Decision
+
+**Accepted and retained.**
+
+The change removes redundant price-level lookups from the market-data publication path while preserving the existing API and passing the test suite. The observed end-to-end throughput improvement justifies retaining the implementation.
+
+Future performance comparisons should continue to use the established benchmark workloads, fixed seeds, consistent build configurations, and repeated measurements. The exact contribution of this optimization should not be inferred from profiling percentages alone.
