@@ -779,3 +779,28 @@ The benchmark improvement is consistent with eliminating the separate price-leve
 The change removes redundant price-level lookups from the market-data publication path while preserving the existing API and passing the test suite. The observed end-to-end throughput improvement justifies retaining the implementation.
 
 Future performance comparisons should continue to use the established benchmark workloads, fixed seeds, consistent build configurations, and repeated measurements. The exact contribution of this optimization should not be inferred from profiling percentages alone.
+
+## M6 — Optimization and Profiling
+
+**Status:** Complete and validated on `main`.
+
+### Objective
+Optimize the existing single-threaded trading simulation using profiling and benchmarking, while preserving correctness and avoiding premature optimization.
+
+### Work Completed
+- Established profiling and hardware-counter baselines to identify the dominant costs in the end-to-end simulation.
+- Optimized order insertion by reserving capacity in the order-ID index based on the expected active order count.
+- Reduced redundant price-level lookups in cancellation and order-reduction paths by reusing cached price-level iterators.
+- Added combined best-level price and aggregate-quantity queries to avoid redundant lookups during market-data publication.
+- Re-ran component-level and end-to-end benchmarks to evaluate the changes, alongside correctness tests.
+
+### Results
+- All tests pass on `main`.
+- The latest end-to-end benchmark results show approximately **21–27% lower runtime** across the tested 10K, 100K, and 1M-event workloads compared with the recorded M5 baseline means.
+- The comparison is encouraging, but it is not a strictly controlled A/B measurement: the baseline and optimized runs were not interleaved under identical conditions.
+- Detailed optimization rationale, individual benchmark results, and profiling observations are recorded in the M6 optimization log and benchmark artifacts.
+
+### Outcome and Future Work
+M6 establishes a profiled and benchmarked optimized baseline for the subsequent milestones. The changes were retained based on their measured benefits and successful correctness validation.
+
+Further optimization is **deferred, not ruled out**. We may revisit M6 later if new profiling results identify meaningful bottlenecks and the expected performance gains justify the additional complexity and engineering effort. Any future changes should be benchmarked against the preserved baseline and accepted only after correctness and performance validation.
