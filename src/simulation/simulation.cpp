@@ -68,34 +68,38 @@ void Simulation::publish_market_data()
     {
         const Trade &trade = _trade_sink[processed_trade_count++];
 
-        if (_strategy_orders.find(trade.aggressor_id) != _strategy_orders.end())
+        auto strategy_aggressor_it = _strategy_orders.find(trade.aggressor_id);
+        auto strategy_resting_it = _strategy_orders.find(trade.resting_id);
+        auto source_aggressor_it = _source_orders.find(trade.aggressor_id);
+        auto source_resting_it = _source_orders.find(trade.resting_id);
+        if (strategy_aggressor_it != _strategy_orders.end())
         {
             _strategy.on_execution(ExecutionReport{trade.aggressor_id, trade.price, trade.quantity});
-            _strategy_orders[trade.aggressor_id] -= trade.quantity;
-            if (_strategy_orders[trade.aggressor_id] == 0)
+            strategy_aggressor_it->second -= trade.quantity;
+            if (strategy_aggressor_it->second == 0)
                 _strategy_orders.erase(trade.aggressor_id);
         }
-        else if (_source_orders.find(trade.aggressor_id) != _source_orders.end())
+        else if (source_aggressor_it != _source_orders.end())
         {
-            _source_orders[trade.aggressor_id] -= trade.quantity;
-            if (_source_orders[trade.aggressor_id] == 0)
+            source_aggressor_it->second -= trade.quantity;
+            if (source_aggressor_it->second == 0)
             {
                 _source_orders.erase(trade.aggressor_id);
                 _event_source.on_order_update(trade.aggressor_id, OrderStatus::REMOVED);
             }
         }
 
-        if (_strategy_orders.find(trade.resting_id) != _strategy_orders.end())
+        if (strategy_resting_it != _strategy_orders.end())
         {
             _strategy.on_execution(ExecutionReport{trade.resting_id, trade.price, trade.quantity});
-            _strategy_orders[trade.resting_id] -= trade.quantity;
-            if (_strategy_orders[trade.resting_id] == 0)
+            strategy_resting_it->second -= trade.quantity;
+            if (strategy_resting_it->second == 0)
                 _strategy_orders.erase(trade.resting_id);
         }
-        else if (_source_orders.find(trade.resting_id) != _source_orders.end())
+        else if (source_resting_it != _source_orders.end())
         {
-            _source_orders[trade.resting_id] -= trade.quantity;
-            if (_source_orders[trade.resting_id] == 0)
+            source_resting_it->second -= trade.quantity;
+            if (source_resting_it->second == 0)
             {
                 _source_orders.erase(trade.resting_id);
                 _event_source.on_order_update(trade.resting_id, OrderStatus::REMOVED);
