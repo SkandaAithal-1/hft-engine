@@ -109,18 +109,18 @@ void Simulation::publish_market_data()
         _strategy.on_market_data(TradeEvent{trade.price, trade.quantity});
     }
 
-    const std::optional<Order> best_bid = _order_book.best_bid();
-    const std::optional<Order> best_ask = _order_book.best_ask();
+    const std::optional<BestLevel> best_bid = _order_book.best_bid_price_with_quantity();
+    const std::optional<BestLevel> best_ask = _order_book.best_ask_price_with_quantity();
     BookUpdate next_update{};
     if (best_bid)
     {
         next_update.best_bid = best_bid->price;
-        next_update.bid_quantity = _order_book.quantity_at(Side::Buy, best_bid->price);
+        next_update.bid_quantity = best_bid->total_quantity;
     }
     if (best_ask)
     {
         next_update.best_ask = best_ask->price;
-        next_update.ask_quantity = _order_book.quantity_at(Side::Sell, best_ask->price);
+        next_update.ask_quantity = best_ask->total_quantity;
     }
 
     if (next_update != last_published_update)
