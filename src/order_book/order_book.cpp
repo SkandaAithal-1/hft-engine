@@ -44,7 +44,7 @@ CancelResult OrderBook::cancel_order(const OrderID id)
     auto &book_side = (side == Side::Buy)
                           ? _bids
                           : _asks;
-    auto price_level_it = handle.price_level_iterator; 
+    auto price_level_it = handle.price_level_iterator;
     auto &price_level = price_level_it->second;
 
     price_level.total_quantity -= handle.iterator->remaining;
@@ -71,6 +71,24 @@ std::optional<Order> OrderBook::best_ask() const
         return std::nullopt;
 
     return _asks.begin()->second.orders.front();
+}
+
+std::optional<BestLevel> OrderBook::best_bid_price_with_quantity() const
+{
+    if (_bids.empty())
+        return std::nullopt;
+
+    const auto &best_bid_level = _bids.rbegin()->second;
+    return BestLevel{_bids.rbegin()->first, best_bid_level.total_quantity};
+}
+
+std::optional<BestLevel> OrderBook::best_ask_price_with_quantity() const
+{
+    if (_asks.empty())
+        return std::nullopt;
+
+    const auto &best_ask_level = _asks.begin()->second;
+    return BestLevel{_asks.begin()->first, best_ask_level.total_quantity};
 }
 
 Quantity OrderBook::quantity_at(const Side side, const Price price) const

@@ -21,6 +21,10 @@ public:
 
     std::optional<Order> best_ask() const;
 
+    std::optional<BestLevel> best_bid_price_with_quantity() const;
+
+    std::optional<BestLevel> best_ask_price_with_quantity() const;
+
     Quantity quantity_at(const Side side, const Price price) const;
 
     std::size_t order_count_at(const Side side, const Price price) const;

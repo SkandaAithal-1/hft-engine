@@ -10,3 +10,9 @@ struct PriceLevel
     std::list<Order> orders;
     Quantity total_quantity;
 };
+
+struct BestLevel
+{
+    Price price;
+    Quantity total_quantity;
+};
