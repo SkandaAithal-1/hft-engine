@@ -36,6 +36,9 @@ add_library(hft_simulation
 add_library(hft_synthetic_market
     src/synthetic_market/synthetic_market.cpp
 )
+add_library(hft_message_codec
+    src/protocol/message_codec.cpp
+)
 
 target_include_directories(hft_order_book
     PUBLIC
@@ -65,6 +68,10 @@ target_include_directories(hft_synthetic_market
     PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
 )
+target_include_directories(hft_message_codec
+    PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+)
 
 target_link_libraries(hft_matching_engine
     PUBLIC 
@@ -80,6 +87,10 @@ target_link_libraries(hft_simulation
         hft_matching_engine
         hft_event_processor
         hft_order_gateway
+)
+target_link_libraries(hft_message_codec
+    PUBLIC 
+        hft_order_book
 )
 
 # ------------------------------------------------------------
@@ -108,6 +119,9 @@ add_executable(synthetic_market_tests
 )
 add_executable(simulation_synthetic_market_tests
     tests/synthetic_market/simulation_synthetic_market_tests.cpp
+)
+add_executable(message_codec_tests
+    tests/protocol/message_codec_tests.cpp
 )
 
 target_link_libraries(order_book_tests
@@ -143,6 +157,11 @@ target_link_libraries(simulation_synthetic_market_tests
         hft_strategy
         Catch2::Catch2WithMain
 )
+target_link_libraries(message_codec_tests
+    PRIVATE 
+        hft_message_codec
+        Catch2::Catch2WithMain
+)
 
 
 include(Catch)
@@ -153,6 +172,7 @@ catch_discover_tests(event_processor_tests)
 catch_discover_tests(simulation_tests)
 catch_discover_tests(synthetic_market_tests)
 catch_discover_tests(simulation_synthetic_market_tests)
+catch_discover_tests(message_codec_tests)
 
 include(FetchContent)
 
