@@ -11,6 +11,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(ENABLE_SANITIZERS "Enable AddressSanitizer and UBSan" OFF)
+option(ENABLE_PROFILING "Enable Profiling Options" OFF)
+
+if (ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+    )
+    add_link_options(-fsanitize=address,undefined)
+endif()
+
+if (ENABLE_PROFILING AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(
+        -fno-omit-frame-pointer
+    )
+endif()
+
 # ------------------------------------------------------------
 # Library
 # ------------------------------------------------------------
