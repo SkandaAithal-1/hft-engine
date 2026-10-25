@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <variant>
 #include <optional>
+#include <string>
 
 #include <hft/order_book/types.hpp>
 
@@ -48,4 +49,32 @@ struct DecodeResult
 {
     std::optional<ProtocolMessage> message;
     DecodeError error;
+
+    bool ok() const noexcept
+    {
+        return error == DecodeError::NO_ERROR;
+    }
 };
+
+inline std::string to_string(DecodeError error)
+{
+    switch (error)
+    {
+    case DecodeError::FRAME_TOO_LARGE:
+        return std::string("FRAME TOO LARGE");
+    case DecodeError::INCOMPLETE_FRAME:
+        return std::string("INCOMPLETE FRAME");
+    case DecodeError::INVALID_FRAME_LENGTH:
+        return std::string("INVALID FRAME LENGTH");
+    case DecodeError::INVALID_PAYLOAD_LENGTH:
+        return std::string("INVALID PAYLOAD LENGTH");
+    case DecodeError::INVALID_SIDE:
+        return std::string("INVALID SIDE");
+    case DecodeError::UNKNOWN_MESSAGE_TYPE:
+        return std::string("UNKNOWN MESSAGE TYPE");
+    case DecodeError::UNSUPPORTED_VERSION:
+        return std::string("UNSUPPORTED VERSION");
+    case DecodeError::NO_ERROR:
+        return std::string("NO ERROR");
+    }
+}

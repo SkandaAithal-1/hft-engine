@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <span>
+#include <string>
 
 inline constexpr std::size_t MIN_FRAME_LEN = 6;
 inline constexpr std::size_t MAX_FRAME_LEN = 64;
@@ -15,6 +16,23 @@ enum class FrameError
     DECODER_FAILED,
     DECODER_FINISHED,
 };
+
+inline std::string to_string(FrameError error)
+{
+    switch (error)
+    {
+    case FrameError::DECODER_FAILED:
+        return std::string("DECODER FAILED");
+    case FrameError::DECODER_FINISHED:
+        return std::string("DECODER FINISHED");
+    case FrameError::INCOMPLETE_FRAME:
+        return std::string("INCOMPLETE FRAME");
+    case FrameError::INVALID_FRAME_LENGTH:
+        return std::string("INVALID FRAME LENGTH");
+    case FrameError::NONE:
+        return std::string("NONE");
+    }
+}
 
 enum class DecoderState
 {
